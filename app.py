@@ -1,45 +1,26 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import io
 
-st.title("📊 CSV-based Data Visualization")
+st.title("📊 Pie and Histogram Viewer")
 
-# Upload CSV
+# File uploader
 uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
+# Check if a file was uploaded
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    st.subheader("📋 Preview of Data")
-    st.write(df.head())
+    try:
+        # Try decoding and reading the CSV
+        content = uploaded_file.getvalue().decode("utf-8")
+        df = pd.read_csv(io.StringIO(content))
 
-    # Select chart type
-    chart_type = st.selectbox("Choose a chart type:", ["Pie Chart", "Histogram"])
+        st.subheader("📋 Preview of Data")
+        st.write(df.head())
 
-    if chart_type == "Pie Chart":
-        st.subheader("🍕 Pie Chart")
+        # You can add your pie chart and histogram logic here
 
-        # Select category and values
-        category_col = st.selectbox("Select Category Column:", df.columns)
-        value_col = st.selectbox("Select Value Column:", df.columns)
+    except Exception as e:
+        st.error(f"❌ Failed to read CSV file: {e}")
+else:
+    st.info("Please upload a CSV file to begin.")
 
-        if st.button("Generate Pie Chart"):
-            fig, ax = plt.subplots()
-            ax.pie(df[value_col], labels=df[category_col], autopct='%1.1f%%', startangle=90)
-            ax.axis("equal")
-            st.pyplot(fig)
-
-    elif chart_type == "Histogram":
-        st.subheader("📉 Histogram")
-
-        # Select numeric column
-        num_col = st.selectbox("Select Numeric Column:", df.select_dtypes(include=["int64", "float64"]).columns)
-
-        bins = st.slider("Number of bins:", 5, 50, 10)
-
-        if st.button("Generate Histogram"):
-            fig, ax = plt.subplots()
-            ax.hist(df[num_col], bins=bins, color="skyblue", edgecolor="black")
-            ax.set_title(f"Histogram of {num_col}")
-            ax.set_xlabel("Value")
-            ax.set_ylabel("Frequency")
-            st.pyplot(fig)
